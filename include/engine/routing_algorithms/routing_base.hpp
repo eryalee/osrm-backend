@@ -528,9 +528,8 @@ template <class DataFacadeT, class Derived> class BasicRoutingInterface
                                           std::vector<NodeID> &packed_path) const
     {
         NodeID current_node_id = middle_node_id;
-        // all initial nodes will have itself as parent
-        // all incomplete paths (e.g. paths ending at the core boundary) will have SPECIAL_NODEID
-        // as parent
+        // all initial nodes will have itself as parent, or a node not in the heap
+        // in case of a core search heap
         while (current_node_id != search_heap.GetData(current_node_id).parent &&
                search_heap.WasInserted(search_heap.GetData(current_node_id).parent))
         {
@@ -700,39 +699,27 @@ template <class DataFacadeT, class Derived> class BasicRoutingInterface
                 }
             }
         }
-        // TODO check if unordered_set might be faster
-        // sort by id and increasing by distance
-        std::sort(forward_entry_points.begin(), forward_entry_points.end());
-        std::sort(reverse_entry_points.begin(), reverse_entry_points.end());
 
-        // inserts the entry point in the heap if it wasn't inserted before and updates last_id
         const auto insertInCoreHeap =
-            [](const CoreEntryPoint &p, SearchEngineData::QueryHeap &core_heap, NodeID &last_id) {
+            [](const CoreEntryPoint &p, SearchEngineData::QueryHeap &core_heap) {
                 NodeID id;
                 EdgeWeight weight;
                 NodeID parent;
+                // TODO this should use std::apply when we get c++17 support
                 std::tie(id, weight, parent) = p;
-                if (id == last_id)
-                {
-                    return;
-                }
-
                 core_heap.Insert(id, weight, parent);
-                last_id = id;
             };
 
         forward_core_heap.Clear();
-        NodeID last_id = SPECIAL_NODEID;
         for (const auto &p : forward_entry_points)
         {
-            insertInCoreHeap(p, forward_core_heap, last_id);
+            insertInCoreHeap(p, forward_core_heap);
         }
 
         reverse_core_heap.Clear();
-        last_id = SPECIAL_NODEID;
         for (const auto &p : reverse_entry_points)
         {
-            insertInCoreHeap(p, reverse_core_heap, last_id);
+            insertInCoreHeap(p, reverse_core_heap);
         }
 
         // get offset to account for offsets on phantom nodes on compressed edges
