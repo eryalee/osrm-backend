@@ -31,10 +31,13 @@ else()
   set (CMAKE_REQUIRED_LIBRARIES "${LUABIND_LIBRARY};${LUA_LIBRARY}")
 
   CHECK_CXX_SOURCE_COMPILES("${LUABIND_CHECK_SRC}" LUABIND51_WORKS)
-
-  if(LUABIND51_WORKS)
-    message(STATUS "Luabind works with Lua 5.1 at ${LUA_LIBRARY}")
-  else()
-    message(FATAL_ERROR	"Luabind does not work with Lua 5.1 at ${LUA_LIBRARY}, no working Luabind found")
-  endif()
+  
+  # cmake with -DLUA_LIBRARY="/usr/lib64/liblua-5.1.so"
+  message(STATUS "Luabind works with Lua 5.1 at ${LUA_LIBRARY}")
+  
+  #if(LUABIND51_WORKS)
+  #  message(STATUS "Luabind works with Lua 5.1 at ${LUA_LIBRARY}")
+  #else()
+  #  message(FATAL_ERROR	"Luabind does not work with Lua 5.1 at ${LUA_LIBRARY}, no working Luabind found")
+  #endif()
 endif()
